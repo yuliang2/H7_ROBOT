@@ -4,9 +4,9 @@
 #include <stdarg.h>
 #include "usbd_cdc_if.h"
 
-uint8_t usbtemp[64];
 void usbvcom_printf(const char *format,...)
 {
+    uint8_t usbtemp[64];
     uint16_t     len;
     va_list     args;
 

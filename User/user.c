@@ -8,6 +8,7 @@ uint8_t g = 1;
 uint8_t b = 0;
 
 void robot_init(){
+    HAL_Delay(1000);
     usbvcom_printf("Program Started!\r\n");
 }
 
