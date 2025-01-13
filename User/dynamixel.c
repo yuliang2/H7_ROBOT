@@ -26,6 +26,10 @@ int dxl_goal_position[2] = { DXL_MINIMUM_POSITION_VALUE, DXL_MAXIMUM_POSITION_VA
 uint8_t dxl_error = 0;                          // Dynamixel error
 int32_t dxl_present_position = 0;               // Present position
 
+PacketData *packetData;
+int     g_used_port_num;
+uint8_t    *g_is_using;
+
 void dynamixel_init(){
     packetHandler();
 

@@ -4,6 +4,8 @@
 #include "user.h"
 #include "string.h"
 #include "usart.h"
+#include <stdio.h>
+#include <stdarg.h>
 
 
 
@@ -18,6 +20,19 @@ void robot_uart_init(){
     HAL_UART_Receive_IT(&huart1, u1Rx, U1_RX_LEN);
     HAL_UART_Receive_IT(&huart2, u2Rx, U2_RX_LEN);
     HAL_UART_Receive_IT(&huart3, u3Rx, U3_RX_LEN);
+}
+
+void uart_printf(const char *format,...)
+{
+    uint8_t usbtemp[64];
+    uint16_t     len;
+    va_list     args;
+
+    va_start(args, format);
+    len = vsnprintf((char *)usbtemp, sizeof(usbtemp)+1, (char *)format, args);
+    va_end(args);
+
+    HAL_UART_Transmit(&huart1, (uint8_t *)usbtemp, len, 100);
 }
 
 

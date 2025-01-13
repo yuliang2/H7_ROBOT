@@ -17,10 +17,15 @@ extern uint8_t u1RxFlag, u2RxFlag, u3RxFlag;
 void robot_init();
 void robot_loop();
 void usbvcom_printf(const char *format,...);
+void robot_uart_init();
+void uart_printf(const char *format,...);
 
 #define WS2812_SPI_UNIT     hspi6
 extern SPI_HandleTypeDef WS2812_SPI_UNIT;
 
 void WS2812_Ctrl(uint8_t r, uint8_t g, uint8_t b);
+
+void dynamixel_init();
+void dynamixel_loop();
 
 #endif //USER_H
