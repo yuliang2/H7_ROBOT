@@ -1,5 +1,5 @@
-#include "user.h"
-#include "dynamixel_sdk.h"
+#include "modules.h"
+#include "dynamixel_sdk/dynamixel_sdk.h"
 #include "stdlib.h"
 
 // Control table address
