@@ -117,12 +117,20 @@ int getBytesAvailable(int port_num) {
 }
 
 int readPort(int port_num, uint8_t *packet, int length) {
-    return HAL_UART_Receive(&huart2, (uint8_t *)packet, length, 0);
+    if (HAL_UART_Receive(&huart2, (uint8_t *)packet, length, 100) == HAL_OK) {
+        return length;
+    } else {
+        return 0;
+    }
     // return readPortLinux(port_num, packet, length);
 }
 
 int writePort(int port_num, uint8_t *packet, int length) {
-    return HAL_UART_Transmit(&huart2, (uint8_t *)packet, length, 0);
+    if (HAL_UART_Transmit(&huart2, (uint8_t *)packet, length, 100) == HAL_OK) {
+        return length;
+    } else {
+        return 0;
+    }
     // return writePortLinux(port_num, packet, length);
 }
 

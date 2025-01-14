@@ -44,6 +44,5 @@ void robot_loop(){
     // }
     dynamixel_loop();
     WS2812_Ctrl(r, g, b);
-    g = 30-g;
-    HAL_Delay(100);
+    g = (g+1)%100;
 }
