@@ -24,4 +24,7 @@ void usbvcom_printf(const char *format,...);
 // BSP
 void bspInit();
 
+// PWM
+#include "bsp_pwm.h"
+
 #endif //BSP_H

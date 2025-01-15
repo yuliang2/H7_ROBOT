@@ -10,6 +10,7 @@
 #include "modules.h"
 
 void modules_init() {
+  BuzzerInit();
   dynamixel_init();
 }
 

@@ -23,6 +23,8 @@ void WS2812_Ctrl(uint8_t r, uint8_t g, uint8_t b);
 void dynamixel_init();
 void dynamixel_loop();
 
+// buzzer
+#include "buzzer.h"
 
 // modules
 void modules_init();
