@@ -14,7 +14,13 @@
 #include "modules.h"
 #include "bsp.h"
 
-void app_init(void);
+#include "buzzer.h"
+
+void OSTaskInit(void);
 void app_loop_for_test();
+
+__attribute__((noreturn)) void startMotorTask(void const *argument);
+__attribute__((noreturn)) void startBuzzerTask(void const *argument);
+__attribute__((noreturn)) void startLEDTask(void const *argument);
 
 #endif //APPLICATION_H

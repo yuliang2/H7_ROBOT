@@ -11,6 +11,6 @@
 
 void modules_init() {
   BuzzerInit();
-  dynamixel_init();
+
 }
 
