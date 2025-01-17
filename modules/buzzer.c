@@ -23,6 +23,9 @@ void BuzzerInit()
     // PWMStop(buzzer);
 }
 
+/**
+ * @brief 通过蜂鸣器配置结构体新建一个蜂鸣器实例
+ */
 BuzzzerInstance *BuzzerRegister(Buzzer_config_s *config)
 {
     if (config->alarm_level > BUZZER_DEVICE_CNT) // 超过最大实例数,考虑增加或查看是否有内存泄漏
@@ -40,11 +43,17 @@ BuzzzerInstance *BuzzerRegister(Buzzer_config_s *config)
     return buzzer_temp;
 }
 
+/**
+ * @brief 蜂鸣器开关控制
+ */
 void AlarmSetStatus(BuzzzerInstance *buzzer, AlarmState_e state)
 {
     buzzer->alarm_state = state;
 }
 
+/**
+ * @brief 蜂鸣器任务
+ */
 void BuzzerTask()
 {
     BuzzzerInstance *buzz;

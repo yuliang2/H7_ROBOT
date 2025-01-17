@@ -3,6 +3,10 @@
 #define WS2812_LowLevel    0xC0     // 0码
 #define WS2812_HighLevel   0xF0     // 1码
 
+/**
+ * @brief WS2812 LED灯控制函数
+ * @note 根据传入的r g b三个值来控制LED灯的三种颜色亮度
+ */
 void WS2812_Ctrl(uint8_t r, uint8_t g, uint8_t b)
 {
     uint8_t txbuf[24];

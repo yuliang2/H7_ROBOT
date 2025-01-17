@@ -14,6 +14,9 @@
 #include <stdarg.h>
 #include "usbd_cdc_if.h"
 
+/**
+ * @brief 通过单片机的USB接口作为虚拟串口，打印数据
+ */
 void usbvcom_printf(const char *format,...)
 {
     uint8_t usbtemp[64];

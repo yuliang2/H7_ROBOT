@@ -113,6 +113,7 @@ int main(void)
   bspInit();
   modules_init();
   OSTaskInit();
+  app_loop_for_test();
   /* USER CODE END 2 */
 
   /* Call init function for freertos objects (in cmsis_os2.c) */
@@ -127,7 +128,6 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    app_loop_for_test();
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

@@ -22,5 +22,6 @@ void app_loop_for_test();
 __attribute__((noreturn)) void startMotorTask(void const *argument);
 __attribute__((noreturn)) void startBuzzerTask(void const *argument);
 __attribute__((noreturn)) void startLEDTask(void const *argument);
+__attribute__((noreturn)) void startOrinTask(void const *argument);
 
 #endif //APPLICATION_H

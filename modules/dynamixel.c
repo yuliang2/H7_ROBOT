@@ -9,19 +9,12 @@
 
 #define PROTOCOL_VERSION                2.0
 
-#define DXL_ID                          1
 #define BAUDRATE                        57600
 #define TORQUE_ENABLE                   1
 #define TORQUE_DISABLE                  0
-#define DXL_MINIMUM_POSITION_VALUE      0             // Dynamixel will rotate between this value
-#define DXL_MAXIMUM_POSITION_VALUE      4095          // and this value (note that the Dynamixel would not move when the position value is out of movable range. Check e-manual about the range of the Dynamixel you use.)
-#define DXL_MOVING_STATUS_THRESHOLD     10            // Dynamixel moving status threshold
 
 int port_num;
-
-int dynamixel_index = 0;
 int dxl_comm_result = COMM_TX_FAIL;             // Communication result
-int dxl_goal_position[8] = { 0, DXL_MAXIMUM_POSITION_VALUE/4, DXL_MAXIMUM_POSITION_VALUE/2, DXL_MAXIMUM_POSITION_VALUE/4*3, DXL_MAXIMUM_POSITION_VALUE, DXL_MAXIMUM_POSITION_VALUE/4*3, DXL_MAXIMUM_POSITION_VALUE/2, DXL_MAXIMUM_POSITION_VALUE/4 };         // Goal position
 
 uint8_t dxl_error = 0;                          // Dynamixel error
 int32_t dxl_present_position = 0;               // Present position
@@ -30,12 +23,40 @@ PacketData *packetData;
 int     g_used_port_num;
 uint8_t    *g_is_using;
 
-void dynamixel_init(){
+MotorInstance_s motorInstance[8];
+
+/**
+ * @brief 所有舵机的初始化函数
+ * @note 在app的startMotorTask中调用
+ */
+void motor_init() {
     port_num = portHandler("2");
     packetHandler();
 
+    motor_single_init(&motorInstance[0], 1, 2048, DXL_DEFAULT_MIN_POSITION_VALUE, DXL_DEFAULT_MAX_POSITION_VALUE);
+    motor_single_init(&motorInstance[1], 2, 2048, DXL_DEFAULT_MIN_POSITION_VALUE, DXL_DEFAULT_MAX_POSITION_VALUE);
+    motor_single_init(&motorInstance[2], 3, 2048, DXL_DEFAULT_MIN_POSITION_VALUE, DXL_DEFAULT_MAX_POSITION_VALUE);
+    motor_single_init(&motorInstance[3], 4, 2048, DXL_DEFAULT_MIN_POSITION_VALUE, DXL_DEFAULT_MAX_POSITION_VALUE);
+    // motor_single_init(&motorInstance[4], 4, );
+    // motor_single_init(&motorInstance[5], 5, );
+    // motor_single_init(&motorInstance[6], 6, );
+    // motor_single_init(&motorInstance[7], 7, );
+
+}
+
+/**
+ * @brief 单个电机初始化函数
+ * @note 在motor_init中调用
+ */
+void motor_single_init(MotorInstance_s *motor_instance, int id, int target_position, int minPositionValue, int maxPositionValue){
+
+    motor_instance->id = id;
+    motor_instance->minPositionValue = minPositionValue;
+    motor_instance->maxPositionValue = maxPositionValue;
+    motor_instance->target_position = target_position;
+
     // Enable Dynamixel Torque
-    write1ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, ADDR_PRO_TORQUE_ENABLE, TORQUE_ENABLE);
+    write1ByteTxRx(port_num, PROTOCOL_VERSION, motor_instance->id, ADDR_PRO_TORQUE_ENABLE, TORQUE_ENABLE);
     if ((dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION)) != COMM_SUCCESS)
     {
         dynamixel_log("%s\n", getTxRxResult(PROTOCOL_VERSION, dxl_comm_result));
@@ -46,13 +67,17 @@ void dynamixel_init(){
     }
     else
     {
-        dynamixel_log("Dynamixel has been successfully connected \n");
+        dynamixel_log("Dynamixel [ID:%03d] has been successfully enabled \n", motor_instance->id);
     }
 }
 
-uint8_t dynamixel_write_goal_position(int port_num, int id, const int goal_position) {
+/**
+ * @brief dynamixel电机的位置控制函数
+ * @note 在motor task中使用
+ */
+uint8_t dynamixel_write_goal_position(MotorInstance_s *motor_instance, const int goal_position) {
     // Write goal position
-    write4ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, ADDR_PRO_GOAL_POSITION, goal_position);
+    write4ByteTxRx(port_num, PROTOCOL_VERSION, motor_instance->id, ADDR_PRO_GOAL_POSITION, goal_position);
     if ((dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION)) != COMM_SUCCESS)
     {
         dynamixel_log("%s\n", getTxRxResult(PROTOCOL_VERSION, dxl_comm_result));
@@ -66,9 +91,13 @@ uint8_t dynamixel_write_goal_position(int port_num, int id, const int goal_posit
     return true;
 }
 
-uint8_t dynamixel_read_present_position(int port_num, int id, int32_t *present_position) {
+/**
+ * @brief dynamixel电机的位置读取函数
+ * @note 在motor task中使用
+ */
+uint8_t dynamixel_read_present_position(MotorInstance_s *motor_instance) {
     // Read present position
-    *present_position = read4ByteTxRx(port_num, PROTOCOL_VERSION, DXL_ID, ADDR_PRO_PRESENT_POSITION);
+    uint32_t present_position = read4ByteTxRx(port_num, PROTOCOL_VERSION, motor_instance->id, ADDR_PRO_PRESENT_POSITION);
     if ((dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION)) != COMM_SUCCESS)
     {
         dynamixel_log("%s\n", getTxRxResult(PROTOCOL_VERSION, dxl_comm_result));
@@ -79,22 +108,27 @@ uint8_t dynamixel_read_present_position(int port_num, int id, int32_t *present_p
         dynamixel_log("%s\n", getRxPacketError(PROTOCOL_VERSION, dxl_error));
         return false;
     }
+    motor_instance->present_position = present_position;
     return true;
 }
 
-void dynamixel_loop() {
-    static  bool finishGoal = true;
-    static uint32_t startTime;
-    if (finishGoal) {
-        dynamixel_write_goal_position(port_num,DXL_ID,dxl_goal_position[dynamixel_index]);
-        startTime = HAL_GetTick();
-        finishGoal = false;
+/**
+ * @brief dynamixel电机的检查在线函数
+ * @note 备用
+ */
+int dynamixel_check_motor_online(MotorInstance_s *motor_instance) {
+    // Try to ping the Dynamixel
+    // Get Dynamixel model number
+    int dxl_model_number = pingGetModelNum(port_num, PROTOCOL_VERSION, motor_instance->id);
+    if ((dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION)) != COMM_SUCCESS)
+    {
+        dynamixel_log("%s\n", getTxRxResult(PROTOCOL_VERSION, dxl_comm_result));
     }
-    dynamixel_read_present_position(port_num,DXL_ID,&dxl_present_position);
-    dynamixel_log("ID %3d:%3d,%3d\r\n",DXL_ID, dxl_goal_position[dynamixel_index], dxl_present_position);
-    if (abs(dxl_goal_position[dynamixel_index] - dxl_present_position) <= DXL_MOVING_STATUS_THRESHOLD && HAL_GetTick() > startTime + 2000) {
-        finishGoal = true;
-        dynamixel_index = (dynamixel_index + 1) % 8;
+    else if ((dxl_error = getLastRxPacketError(port_num, PROTOCOL_VERSION)) != 0)
+    {
+        dynamixel_log("%s\n", getRxPacketError(PROTOCOL_VERSION, dxl_error));
     }
 
+    printf("[ID:%03d] ping Succeeded. Dynamixel model number : %d\n", motor_instance->id, dxl_model_number);
+    return dxl_model_number;
 }
