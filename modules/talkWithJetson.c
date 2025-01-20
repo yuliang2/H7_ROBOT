@@ -12,11 +12,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <stdbool.h>
 
 #include "modules.h"
 
 static USARTInstance *orin_usart_instance; // orin系统串口实例
 CommandResults* decoded_results;
+
+bool needToSendToOrin = false;
 
 /**
  * @brief 和Orin NX的通信数据解码
@@ -32,7 +35,7 @@ CommandResults* command_decode(const char* s) {
     }
 
     // Local variables
-    char temp[MAX_DIGITS];
+    char temp[MAX_DIGITS] = {0};
     const char* ptr = s;
 
     // Check if the string starts with '<'
@@ -110,11 +113,17 @@ char* command_encode(const CommandResults* command) {
 /*Orin串口接收回调函数,解析数据 */
 static void orinRxCallback()
 {
-    decoded_results = command_decode(orin_usart_instance->recv_buff);
-    for (int i = 0; i < MAX_KEYS; i++) {
-        int target_position = decoded_results->values[i];
-        motorInstance[i].target_position = target_position;
+    if (orin_usart_instance->received_count > 5) {
+        // 收到的数据包不是空包
+        decoded_results = command_decode(orin_usart_instance->recv_buff);
+        if (decoded_results != NULL) {
+            for (int i = 0; i < MAX_KEYS; i++) {
+                int target_position = decoded_results->values[i];
+                motorInstance[i].target_position = target_position;
+            }
+        }
     }
+    needToSendToOrin = true;
 }
 
 /**

@@ -119,13 +119,16 @@ __attribute__((noreturn)) void startOrinTask(void const *argument) {
     //     uart_printf("\r\n");
     //   }
     // }
+    if (needToSendToOrin) {
+      needToSendToOrin = false;
 
-    for (int i = 0; i < MAX_KEYS; i++) {
-      commandToSend.keys[i] = 'A'+i;
-      commandToSend.values[i] = motorInstance[i].present_position;
+      for (int i = 0; i < MAX_KEYS; i++) {
+        commandToSend.keys[i] = 'A'+i;
+        commandToSend.values[i] = motorInstance[i].present_position;
+      }
+      char* encoded_string = command_encode(&commandToSend);
+      talk_with_jetson_send(encoded_string);
     }
-    char* encoded_string = command_encode(&commandToSend);
-    talk_with_jetson_send(encoded_string);
 
     uart_printf("Servos:");
     for (int i = 0; i < MAX_KEYS; i++) {
@@ -134,7 +137,7 @@ __attribute__((noreturn)) void startOrinTask(void const *argument) {
       uart_printf("%d,%d,", target_position,present);
     }
     uart_printf("\r\n");
-    osDelay(100);
+    osDelay(50);
   }
 }
 

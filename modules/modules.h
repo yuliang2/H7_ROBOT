@@ -10,6 +10,7 @@
 
 #ifndef MODULES_H
 #define MODULES_H
+#include <stdbool.h>
 
 #include "main.h"
 #include "bsp.h"
@@ -53,6 +54,7 @@ typedef struct {
   int values[MAX_KEYS];
   char keys[MAX_KEYS]; // A to H
 } CommandResults;
+extern bool needToSendToOrin;
 extern CommandResults* decoded_results;
 CommandResults* command_decode(const char* s);
 char* command_encode(const CommandResults* command);
