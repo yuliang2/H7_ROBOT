@@ -36,11 +36,11 @@ void motor_init() {
 
     motor_single_init(&motorInstance[0], 11, 2166, DXL_DEFAULT_MIN_POSITION_VALUE, DXL_DEFAULT_MAX_POSITION_VALUE);
     motor_single_init(&motorInstance[1], 12, 1724, DXL_DEFAULT_MIN_POSITION_VALUE, DXL_DEFAULT_MAX_POSITION_VALUE);
-    motor_single_init(&motorInstance[2], 13, 1824, DXL_DEFAULT_MIN_POSITION_VALUE, DXL_DEFAULT_MAX_POSITION_VALUE);
+    motor_single_init(&motorInstance[2], 13, 3800, DXL_DEFAULT_MIN_POSITION_VALUE, DXL_DEFAULT_MAX_POSITION_VALUE);
     motor_single_init(&motorInstance[3], 14, 1519, DXL_DEFAULT_MIN_POSITION_VALUE, DXL_DEFAULT_MAX_POSITION_VALUE);
     motor_single_init(&motorInstance[4], 15, 2178, DXL_DEFAULT_MIN_POSITION_VALUE, DXL_DEFAULT_MAX_POSITION_VALUE);
     motor_single_init(&motorInstance[5], 16, 1227, DXL_DEFAULT_MIN_POSITION_VALUE, DXL_DEFAULT_MAX_POSITION_VALUE);
-    motor_single_init(&motorInstance[6], 17, 430, DXL_DEFAULT_MIN_POSITION_VALUE, DXL_DEFAULT_MAX_POSITION_VALUE);
+    motor_single_init(&motorInstance[6], 17, 2369, DXL_DEFAULT_MIN_POSITION_VALUE, DXL_DEFAULT_MAX_POSITION_VALUE);
     motor_single_init(&motorInstance[7], 18, 1973, DXL_DEFAULT_MIN_POSITION_VALUE, DXL_DEFAULT_MAX_POSITION_VALUE);
 
 }
