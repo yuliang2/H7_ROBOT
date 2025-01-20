@@ -47,8 +47,8 @@ __attribute__((noreturn)) void startMotorTask(void const *argument) {
   static uint32_t startTime;
 
   uart_printf("[freeRTOS] MOTOR Task Start\r\n");
+  osDelay(500);
   motor_init();
-  osDelay(100);
   uart_printf("[FreeRTOS] MOTOR Task Running\r\n");
   // dynamixel_write_goal_position(&motorInstance[decoded_results->keys[3]], decoded_results->values[i]);
   for (;;)
@@ -58,13 +58,15 @@ __attribute__((noreturn)) void startMotorTask(void const *argument) {
       int motorTarget = motorInstance[i].target_position;
 
       if (dynamixel_read_present_position(&motorInstance[motorNum])) {
+        osDelay(10);
         int motorPresentPosition = motorInstance[motorNum].present_position;
         if (abs(motorTarget - motorPresentPosition) > DXL_MOVING_STATUS_THRESHOLD) {
           dynamixel_write_goal_position(&motorInstance[motorNum], motorInstance[i].target_position);
         }
       }
+      osDelay(20);
     }
-    osDelay(10);
+    osDelay(100);
   }
 }
 
@@ -129,7 +131,7 @@ __attribute__((noreturn)) void startOrinTask(void const *argument) {
     for (int i = 0; i < MAX_KEYS; i++) {
       int target_position = motorInstance[i].target_position;
       int present = motorInstance[i].present_position;
-      uart_printf("%d,%d,", target_position, present);
+      uart_printf("%d,%d,", target_position,present);
     }
     uart_printf("\r\n");
     osDelay(100);

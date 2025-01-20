@@ -9,6 +9,7 @@
 //
 void bspInit()
 {
-
+    HAL_GPIO_WritePin(POWER_5V_GPIO_Port, POWER_5V_Pin, 1);
+    HAL_GPIO_WritePin(POWER_OUT1_GPIO_Port, POWER_OUT1_Pin, 1);
 }
 

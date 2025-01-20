@@ -31,16 +31,17 @@ MotorInstance_s motorInstance[8];
  */
 void motor_init() {
     port_num = portHandler("2");
+    openPort(2);
     packetHandler();
 
-    motor_single_init(&motorInstance[0], 1, 2048, DXL_DEFAULT_MIN_POSITION_VALUE, DXL_DEFAULT_MAX_POSITION_VALUE);
-    motor_single_init(&motorInstance[1], 2, 2048, DXL_DEFAULT_MIN_POSITION_VALUE, DXL_DEFAULT_MAX_POSITION_VALUE);
-    motor_single_init(&motorInstance[2], 3, 2048, DXL_DEFAULT_MIN_POSITION_VALUE, DXL_DEFAULT_MAX_POSITION_VALUE);
-    motor_single_init(&motorInstance[3], 4, 2048, DXL_DEFAULT_MIN_POSITION_VALUE, DXL_DEFAULT_MAX_POSITION_VALUE);
-    // motor_single_init(&motorInstance[4], 4, );
-    // motor_single_init(&motorInstance[5], 5, );
-    // motor_single_init(&motorInstance[6], 6, );
-    // motor_single_init(&motorInstance[7], 7, );
+    motor_single_init(&motorInstance[0], 11, 2166, DXL_DEFAULT_MIN_POSITION_VALUE, DXL_DEFAULT_MAX_POSITION_VALUE);
+    motor_single_init(&motorInstance[1], 12, 1724, DXL_DEFAULT_MIN_POSITION_VALUE, DXL_DEFAULT_MAX_POSITION_VALUE);
+    motor_single_init(&motorInstance[2], 13, 1824, DXL_DEFAULT_MIN_POSITION_VALUE, DXL_DEFAULT_MAX_POSITION_VALUE);
+    motor_single_init(&motorInstance[3], 14, 1519, DXL_DEFAULT_MIN_POSITION_VALUE, DXL_DEFAULT_MAX_POSITION_VALUE);
+    motor_single_init(&motorInstance[4], 15, 2178, DXL_DEFAULT_MIN_POSITION_VALUE, DXL_DEFAULT_MAX_POSITION_VALUE);
+    motor_single_init(&motorInstance[5], 16, 1227, DXL_DEFAULT_MIN_POSITION_VALUE, DXL_DEFAULT_MAX_POSITION_VALUE);
+    motor_single_init(&motorInstance[6], 17, 430, DXL_DEFAULT_MIN_POSITION_VALUE, DXL_DEFAULT_MAX_POSITION_VALUE);
+    motor_single_init(&motorInstance[7], 18, 1973, DXL_DEFAULT_MIN_POSITION_VALUE, DXL_DEFAULT_MAX_POSITION_VALUE);
 
 }
 
@@ -100,12 +101,12 @@ uint8_t dynamixel_read_present_position(MotorInstance_s *motor_instance) {
     uint32_t present_position = read4ByteTxRx(port_num, PROTOCOL_VERSION, motor_instance->id, ADDR_PRO_PRESENT_POSITION);
     if ((dxl_comm_result = getLastTxRxResult(port_num, PROTOCOL_VERSION)) != COMM_SUCCESS)
     {
-        dynamixel_log("%s\n", getTxRxResult(PROTOCOL_VERSION, dxl_comm_result));
+        dynamixel_log("ID:%d %s\n", motor_instance->id, getTxRxResult(PROTOCOL_VERSION, dxl_comm_result));
         return false;
     }
     else if ((dxl_error = getLastRxPacketError(port_num, PROTOCOL_VERSION)) != 0)
     {
-        dynamixel_log("%s\n", getRxPacketError(PROTOCOL_VERSION, dxl_error));
+        dynamixel_log("ID:%d %s\n", motor_instance->id, getRxPacketError(PROTOCOL_VERSION, dxl_error));
         return false;
     }
     motor_instance->present_position = present_position;

@@ -20,6 +20,7 @@ typedef struct
 }PortData;
 
 static PortData *portData;
+static USARTInstance *dxl_usart_instance; // dxl通信串口实例
 
 void dynamixel_log(const char *format,...)
 {
@@ -79,9 +80,19 @@ int portHandler(const char *port_name) {
     return port_num;
 }
 
+// void dxlRxCallback() {
+//     dxl_usart_instance->recv_buff;
+// }
+
 uint8_t openPort(int port_num) {
-    int baudrate = portData[port_num].baudrate;
-    dynamixel_log("port:%d baudrate:%d\n", port_num, baudrate);
+    // int baudrate = portData[port_num].baudrate;
+    // dynamixel_log("port:%d baudrate:%d\n", port_num, baudrate);
+    USART_Init_Config_s conf;
+    conf.module_callback = NULL;
+    conf.usart_handle = &huart2;
+    conf.recv_buff_size = 255u; // mx 255(u8)
+    dxl_usart_instance = USARTRegister(&conf);
+
     return true;
 }
 
@@ -117,20 +128,19 @@ int getBytesAvailable(int port_num) {
 }
 
 int readPort(int port_num, uint8_t *packet, int length) {
-    if (HAL_UART_Receive(&huart2, (uint8_t *)packet, length, 100) == HAL_OK) {
-        return length;
-    } else {
-        return 0;
+    int received_length = dxl_usart_instance->received_count;
+    if (received_length) {
+        memcpy(packet, dxl_usart_instance->recv_buff, received_length);
+        memset(dxl_usart_instance->recv_buff, 0, received_length); // 接收结束后清空buffer,对于变长数据是必要的
+        dxl_usart_instance->received_count = 0;
     }
+    return received_length;
     // return readPortLinux(port_num, packet, length);
 }
 
 int writePort(int port_num, uint8_t *packet, int length) {
-    if (HAL_UART_Transmit(&huart2, (uint8_t *)packet, length, 100) == HAL_OK) {
-        return length;
-    } else {
-        return 0;
-    }
+    USARTSend(dxl_usart_instance, packet, length, USART_TRANSFER_DMA);
+    return length;
     // return writePortLinux(port_num, packet, length);
 }
 
