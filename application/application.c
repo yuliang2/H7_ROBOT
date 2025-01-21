@@ -13,28 +13,35 @@
 #include "stdbool.h"
 
 #include "application.h"
+#include "imu/ins_task.h"
 
 osThreadId motorTaskHandle;
 osThreadId buzzerTaskHandle;
 osThreadId ledTaskHandle;
 osThreadId orinTaskHandle;
+osThreadId imuTaskHandle;
+
+attitude_t *IMU_data = {0}; // 云台IMU数据
 
 /**
  * @brief freeRTOS的任务初始化函数
  * @note 在main函数的初始化中使用
  */
 void OSTaskInit(void){
-  osThreadDef(buzzerTask, startBuzzerTask, osPriorityNormal, 0, 128);
-  buzzerTaskHandle = osThreadCreate(osThread(buzzerTask), NULL);
-
-  osThreadDef(motortask, startMotorTask, osPriorityNormal, 0, 256);
-  motorTaskHandle = osThreadCreate(osThread(motortask), NULL);
-
+  // osThreadDef(buzzerTask, startBuzzerTask, osPriorityNormal, 0, 128);
+  // buzzerTaskHandle = osThreadCreate(osThread(buzzerTask), NULL);
+  //
+  // osThreadDef(motortask, startMotorTask, osPriorityNormal, 0, 256);
+  // motorTaskHandle = osThreadCreate(osThread(motortask), NULL);
+  //
   osThreadDef(ledtask, startLEDTask, osPriorityNormal, 0, 128);
   ledTaskHandle = osThreadCreate(osThread(ledtask), NULL);
-
+  //
   osThreadDef(orintask, startOrinTask, osPriorityNormal, 0, 128);
   orinTaskHandle = osThreadCreate(osThread(orintask), NULL);
+
+  osThreadDef(imutask, startIMUTask, osPriorityNormal, 0, 128);
+  imuTaskHandle = osThreadCreate(osThread(imutask), NULL);
 
 }
 
@@ -111,6 +118,7 @@ __attribute__((noreturn)) void startLEDTask(void const *argument) {
 __attribute__((noreturn)) void startOrinTask(void const *argument) {
   CommandResults commandToSend;
   talk_with_jetson_init();
+  osDelay(1000);
   for (;;) {
     // if (decoded_results) {
     //   uart_printf("Decoded Results:\n");
@@ -127,16 +135,34 @@ __attribute__((noreturn)) void startOrinTask(void const *argument) {
     char* encoded_string = command_encode(&commandToSend);
     talk_with_jetson_send(encoded_string);
 
-    uart_printf("Servos:");
-    for (int i = 0; i < MAX_KEYS; i++) {
-      int target_position = motorInstance[i].target_position;
-      int present = motorInstance[i].present_position;
-      uart_printf("%d,%d,", target_position,present);
-    }
-    uart_printf("\r\n");
+    // uart_printf("Servos:");
+    // for (int i = 0; i < MAX_KEYS; i++) {
+    //   int target_position = motorInstance[i].target_position;
+    //   int present = motorInstance[i].present_position;
+    //   uart_printf("%d,%d,", target_position,present);
+    // }
+    // uart_printf("\r\n");
+
+    uart_printf("IMU:Pitch %f,Roll %f,Yaw %f\r\n", IMU_data->Pitch, IMU_data->Roll, IMU_data->Yaw);
+
     osDelay(100);
   }
 }
+
+/**
+ * @brief IMU BMI088任务
+ */
+__attribute__((noreturn)) void startIMUTask(void const *argument) {
+  uart_printf("[freeRTOS] IMU Task Start\r\n");
+  IMU_data = INS_Init(); // IMU先初始化,获取姿态数据指针赋
+  uart_printf("[FreeRTOS] IMU Task Running\r\n");
+  for (;;) {
+    INS_Task();
+    // uart_printf("IMU:Pitch%f,Roll%f,Yaw%f\r\n", IMU_data->Pitch, IMU_data->Roll, IMU_data->Yaw);
+    osDelay(1);
+  }
+}
+
 
 /**
  * @brief 测试函数

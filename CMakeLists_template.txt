@@ -48,11 +48,11 @@ else ()
     add_compile_options(-Og -g)
 endif ()
 
-include_directories(${includes} "bsp" "modules" "application")
+include_directories(${includes} "bsp" "modules" "application" "Middlewares/Third_Party/SEGGER" "bsp/gpio" "bsp/dwt" "bsp/log" "bsp/spi" "bsp/usart" "modules/algorithm" "Drivers/CMSIS/DSP/Include")
 
 add_definitions(${defines})
 
-file(GLOB_RECURSE SOURCES ${sources} "bsp/*.*" "modules/*.*" "application/*.*")
+file(GLOB_RECURSE SOURCES ${sources} "bsp/*.*" "modules/*.*" "application/*.*" "bsp/dwt/*.*")
 
 set(LINKER_SCRIPT $${CMAKE_SOURCE_DIR}/${linkerScript})
 

@@ -21,4 +21,6 @@ void bspInit();
 // PWM
 #include "bsp_pwm.h"
 
+#include "bsp_dwt.h"
+
 #endif //BSP_H
