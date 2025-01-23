@@ -3,7 +3,7 @@
   * @file           : talkWithJetson.c
   * @author         : XuJiang
   * @brief          : 单片机和上位机通信的模块
-  * @attention      : 通信格式< 12A 34B 56C 78D 90E 12F 34G 56H CRC>\r\n 其中A-H表示八个舵机
+  * @attention      : 通信格式< 12A 34B 56C 78D 90E 12F 34G 56H CRC>\r\n 其中A-H表示八个舵机，CRC为2位0-F的ASCII码
   * @date           : 2025/1/16
   ******************************************************************************
   */
