@@ -3,7 +3,7 @@
   * @file           : talkWithJetson.c
   * @author         : XuJiang
   * @brief          : 单片机和上位机通信的模块
-  * @attention      : 通信格式< 12A 34B 56C 78D 90E 12F 34G 56H >\r\n 其中A-H表示八个舵机
+  * @attention      : 通信格式< 12A 34B 56C 78D 90E 12F 34G 56H CRC>\r\n 其中A-H表示八个舵机
   * @date           : 2025/1/16
   ******************************************************************************
   */
@@ -20,6 +20,26 @@ static USARTInstance *orin_usart_instance; // orin系统串口实例
 CommandResults* decoded_results;
 
 bool needToSendToOrin = false;
+
+
+/**
+ * @brief 计算CRC8校验值
+ * @note 参数：字符串data，需要计算的长度length
+ */
+uint8_t calculate_crc(const char* data, size_t length) {
+    uint8_t crc = 0;
+    for (size_t i = 0; i < length; i++) {
+        crc ^= data[i];
+        for (int j = 0; j < 8; j++) {
+            if (crc & 0x80) {
+                crc = (crc << 1) ^ 0x07; // 最后的实现可以依据具体的 CRC-8 多项式做调整
+            } else {
+                crc <<= 1;
+            }
+        }
+    }
+    return crc;
+}
 
 /**
  * @brief 和Orin NX的通信数据解码
@@ -76,10 +96,21 @@ CommandResults* command_decode(const char* s) {
         results.values[i] = sign * atoi(temp);
     }
 
-    // Check for closing '>'
+    // Skip whitespace before CRC
     while (isspace(*ptr)) {
         ptr++;
     }
+    // 读取接受到的CRC
+    uint8_t crc_received = (uint8_t)strtol(ptr, NULL, 16); // 读取接收到的CRC
+    // 计算CRC，长度不包括 CRC 和 '>'
+    size_t length_for_crc = ptr - s; // 计算 CRC 计算时应使用的长度
+    uint8_t crc_calculated = calculate_crc(s, length_for_crc); // 计算 CRC
+    if (crc_received != crc_calculated) {
+        return NULL; // CRC 校验失败
+    }
+
+    // Check for closing '>'
+    ptr+=2; // Skip CRC
     if (*ptr != '>') {
         return NULL; // Invalid format
     }
@@ -98,14 +129,14 @@ char* command_encode(const CommandResults* command) {
     ptr += sprintf(ptr, "<"); // Start with '<'
 
     for (int i = 0; i < MAX_KEYS; i++) {
-        if (command->values[i] >= 0) { // Only add if value is not zero, except for the first item
+        if (command->values[i] >= 0) { // Only add if value is not below zero
             ptr += sprintf(ptr, "%d%c ", command->values[i], command->keys[i]);
         }
     }
 
-    // Replace the final space with '>\r\n'
-    *(ptr - 1) = '>'; // Replace last space with '>'
-    sprintf(ptr, "\r\n"); // Append CRLF at the end
+    // 计算CRC并附加到字符串末尾
+    uint8_t crc = calculate_crc(s, strlen(s));
+    ptr += sprintf(ptr, "%02X>\r\n", crc); // Append CRC and CRLF
 
     return s; // Return the encoded string
 }
@@ -113,7 +144,7 @@ char* command_encode(const CommandResults* command) {
 /*Orin串口接收回调函数,解析数据 */
 static void orinRxCallback()
 {
-    if (orin_usart_instance->received_count > 5) {
+    if (orin_usart_instance->received_count > 10) {
         // 收到的数据包不是空包
         decoded_results = command_decode(orin_usart_instance->recv_buff);
         if (decoded_results != NULL) {

@@ -21,6 +21,8 @@ static USARTInstance *usart_instance[DEVICE_USART_CNT] = {NULL};
 #define LOGINFO uart_printf
 #define LOGWARNING uart_printf
 
+#define PRINTLOG
+
 void uart_printf(const char *format,...)
 {
     uint8_t usbtemp[64];
@@ -30,8 +32,9 @@ void uart_printf(const char *format,...)
     va_start(args, format);
     len = vsnprintf((char *)usbtemp, sizeof(usbtemp)+1, (char *)format, args);
     va_end(args);
-
+#ifdef PRINTLOG
     HAL_UART_Transmit(&huart1, (uint8_t *)usbtemp, len, 100);
+#endif
 }
 /**
  * @brief 启动串口服务,会在每个实例注册之后自动启用接收,当前实现为DMA接收,后续可能添加IT和BLOCKING接收
